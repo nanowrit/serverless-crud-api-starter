@@ -1,4 +1,4 @@
-service: serverless-notes-api-starter
+service: ${opt:service, 'serverless-crud-api'}
 
 # Create an optimized package for our functions
 package:
@@ -14,13 +14,14 @@ custom:
   # commands. Or fallsback to what we have set in the provider section.
   stage: ${opt:stage, self:provider.stage}
   # Set the table name here so we can use it while testing locally
-  tableName: ${self:custom.stage}-notes
+  tableName: ${self:custom.stage}-&{opt:tableName, 'notes'}
+  path: ${opt:tableName, 'notes'}
 
 provider:
   name: aws
   runtime: nodejs10.x
   stage: dev
-  region: us-west-2
+  region: ${opt:region, 'us-west-2'}
 
   # These environment variables are made available to our functions
   # under process.env.
@@ -43,7 +44,7 @@ provider:
       # Restrict our IAM role permissions to
       # the specific table for the stage
       Resource:
-        - "Fn::GetAtt": [ NotesTable, Arn ]
+        - "Fn::GetAtt": [ CrudTable, Arn ]
 
 functions:
   # Defines an HTTP API endpoint that calls the main function in create.js
@@ -56,7 +57,7 @@ functions:
     handler: create.main
     events:
       - http:
-          path: notes
+          path: ${self:custom.path}
           method: post
           cors: true
           authorizer: aws_iam
@@ -68,7 +69,7 @@ functions:
     handler: get.main
     events:
       - http:
-          path: notes/{id}
+          path: ${self:custom.path}/{id}
           method: get
           cors: true
           authorizer: aws_iam
@@ -80,7 +81,7 @@ functions:
     handler: list.main
     events:
       - http:
-          path: notes
+          path: ${self:custom.path}
           method: get
           cors: true
           authorizer: aws_iam
@@ -92,7 +93,7 @@ functions:
     handler: update.main
     events:
       - http:
-          path: notes/{id}
+          path: ${self:custom.path}/{id}
           method: put
           cors: true
           authorizer: aws_iam
@@ -104,7 +105,7 @@ functions:
     handler: delete.main
     events:
       - http:
-          path: notes/{id}
+          path: ${self:custom.path}/{id}
           method: delete
           cors: true
           authorizer: aws_iam
